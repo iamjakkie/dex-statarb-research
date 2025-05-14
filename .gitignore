@@ -1,3 +1,4 @@
 .env
 dirty/
 local/
+*/__pycache__/
