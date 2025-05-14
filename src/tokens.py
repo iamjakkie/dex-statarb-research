@@ -1,15 +1,15 @@
 # TOKEN_MAPPING for available perp platforms and on‐chain DEX contracts
 
 TOKEN_MAPPING = {
-    "Fartcoin": {
-        "drift":        "FARTCOIN-PERP",
+    "FARTCOIN": {
+        "drift":        None,
         "dydx":         "FARTCOIN,RAYDIUM,9BB6NFECJBCTNNLFKO2FQVQBQ8HHM13KCYYCDQBGPUMP-USD",
         "hyperliquid":  "FARTCOIN",
         "sol":          "9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump",
         "eth":          None,
         "base":         None,
     },
-    "Bonk": {
+    "BONK": {
         "drift":        "1MBONK-PERP",
         "dydx":         "BONK-USD",
         "hyperliquid":  "kBONK",
@@ -75,7 +75,7 @@ TOKEN_MAPPING = {
     },
     "KMNO": {
         "drift":        "KMNO-PERP",
-        "dydx":         "KMNO-USD",
+        "dydx":         None,
         "hyperliquid":  None,
         "sol":          "KMNo3nJsBXfcpJTVhZcXLW7RmTwTt4GVFE7suUBo9sS",
         "eth":          None,
@@ -83,7 +83,7 @@ TOKEN_MAPPING = {
     },
     "FWOG": {
         "drift":        "FWOG-PERP",
-        "dydx":         "FWOG-USD",
+        "dydx":         None,
         "hyperliquid":  None,
         "sol":          "A8C3xuqscfmyLrte3VmTqrAq8kgMASius9AFNANwpump",
         "eth":          None,
