@@ -1,0 +1,2 @@
+# ema smoothing
+# median filter
