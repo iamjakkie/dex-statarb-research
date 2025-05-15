@@ -41,4 +41,28 @@ def load_data(src: str, token: str) -> pl.LazyFrame:
         raise ValueError("src must be one of SOLANA, ETHEREUM, BASE, DYDX, HYPERLIQUID, DRIFT")
 
     print(s3_path)
-    return pl.scan_parquet(s3_path)
+
+    df = pl.scan_parquet(s3_path)
+    df = roof_price(df, src, token)
+
+    return df
+
+
+def roof_price(df: pl.DataFrame, src: str, token: str) -> pl.DataFrame:
+    """
+    Cap the price of the token to its max price
+    """
+    if token not in TOKEN_MAPPING:
+        raise ValueError(f"Token {token} not found in TOKEN_MAPPING")
+    
+    max_price = TOKEN_MAPPING[token]['max_price']
+    if max_price is None:
+        raise ValueError(f"Max price for token {token} not found in TOKEN_MAPPING")
+
+    if src == "SOLANA":
+        return df.with_columns(
+            pl.when(pl.col("USD_PRICE") > max_price)
+            .then(max_price)
+            .otherwise(pl.col("USD_PRICE"))
+            .alias("USD_PRICE")
+        )
