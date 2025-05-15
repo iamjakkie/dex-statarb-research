@@ -11,7 +11,7 @@ def load_data(src: str, token: str) -> pl.LazyFrame:
         token_clean = TOKEN_MAPPING[token]['sol']
         if not token_clean:
             raise ValueError(f"Token {token} not found in TOKEN_MAPPING for SOLANA")
-        s3_path = f"s3://iamjakkie-public/normalized/solana_swaps/*/PROGRAM_ID=*/TOKEN+{token_clean}/QUOTE_ASSET=*/*.parquet"
+        s3_path = f"s3://iamjakkie-public/normalized/solana_swaps/*/PROGRAM_ID=*/TOKEN={token_clean}/QUOTE_ASSET=*/*.parquet"
     elif src == "ETHEREUM":
         token_clean = TOKEN_MAPPING[token]['eth']
         if not token_clean:
