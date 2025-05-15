@@ -1,5 +1,18 @@
 # TOKEN_MAPPING for available perp platforms and on‐chain DEX contracts
 
+from dataclasses import dataclass
+
+@dataclass
+class Token:
+    drift: str
+    dydx: str
+    hyperliquid: str
+    sol: str
+    eth: str
+    base: str
+    max_price: float = None
+
+
 TOKEN_MAPPING = {
     "FARTCOIN": {
         "drift":        None,
@@ -8,6 +21,7 @@ TOKEN_MAPPING = {
         "sol":          "9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump",
         "eth":          None,
         "base":         None,
+        "max_price": 2.48,
     },
     "BONK": {
         "drift":        "1MBONK-PERP",
@@ -16,6 +30,7 @@ TOKEN_MAPPING = {
         "sol":          "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
         "eth":          "0x1151cb3d861920e07a38e03eead12c32178567f6",
         "base":         None,
+        "max_price": 0.00005825,
     },
     "PEPE": {
         "drift":        "1MPEPE-PERP",
@@ -24,6 +39,7 @@ TOKEN_MAPPING = {
         "sol":          None,
         "eth":          "0x6982508145454ce325ddbe47a25d4ec3d2311933",
         "base":         None,
+        "max_price": 0.00002803,
     },
     "TRUMP": {
         "drift":        "TRUMP-PERP",
@@ -32,6 +48,7 @@ TOKEN_MAPPING = {
         "sol":          "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
         "eth":          None,
         "base":         None,
+        "max_price": 73.43,
     },
     "JUP": {
         "drift":        "JUP-PERP",
@@ -40,6 +57,7 @@ TOKEN_MAPPING = {
         "sol":          "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
         "eth":          None,
         "base":         None,
+        "max_price": 2.0,
     },
     "W": {
         "drift":        "W-PERP",
@@ -48,6 +66,7 @@ TOKEN_MAPPING = {
         "sol":          "85VBFQZC9TZkfaptBWjvUw7YbZjy52A6mjtPGjstQAmQ",
         "eth":          "0xb0ffa8000886e57f86dd5264b9582b2ad87b2b91",
         "base":         "0xb0ffa8000886e57f86dd5264b9582b2ad87b2b91",
+        "max_price": 1.66,
     },
     "PNUT": {
         "drift":        "PNUT-PERP",
@@ -56,6 +75,7 @@ TOKEN_MAPPING = {
         "sol":          "2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump",
         "eth":          None,
         "base":         None,
+        "max_price": 2.44,
     },
     "AI16Z": {
         "drift":        "AI16Z-PERP",
@@ -64,6 +84,7 @@ TOKEN_MAPPING = {
         "sol":          "HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC",
         "eth":          None,
         "base":         None,
+        "max_price": 2.47,
     },
     "MELANIA": {
         "drift":        "MELANIA-PERP",
@@ -72,6 +93,7 @@ TOKEN_MAPPING = {
         "sol":          "FUAfBo2jgks6gB4Z4LfZkqSZgzNucisEHqnNebaRxM1P",
         "eth":          None,
         "base":         None,
+        "max_price": 13.05,
     },
     "KMNO": {
         "drift":        "KMNO-PERP",
@@ -80,6 +102,7 @@ TOKEN_MAPPING = {
         "sol":          "KMNo3nJsBXfcpJTVhZcXLW7RmTwTt4GVFE7suUBo9sS",
         "eth":          None,
         "base":         None,
+        "max_price": 0.2478,
     },
     "FWOG": {
         "drift":        "FWOG-PERP",
@@ -88,6 +111,7 @@ TOKEN_MAPPING = {
         "sol":          "A8C3xuqscfmyLrte3VmTqrAq8kgMASius9AFNANwpump",
         "eth":          None,
         "base":         None,
+        "max_price": 0.009244,
     },
     "MOODENG": {
         "drift":        "MOODENG-PERP",
@@ -96,6 +120,7 @@ TOKEN_MAPPING = {
         "sol":          "ED5nyyWEzpPPiWimP8vYm7sD7TD3LAt3Q3gRTWHzPJBY",
         "eth":          None,
         "base":         None,
+        "max_price": 0.6804,
     },
     "JTO": {
         "drift":        "JTO-PERP",
@@ -104,6 +129,7 @@ TOKEN_MAPPING = {
         "sol":          "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
         "eth":          None,
         "base":         None,
+        "max_price": 6.01,
     },
     "GOAT": {
         "drift":        "GOAT-PERP",
@@ -112,6 +138,7 @@ TOKEN_MAPPING = {
         "sol":          "CzLSujWBLFsSjncfkh59rUFqvafWcY5tzedWJSuypump",
         "eth":          None,
         "base":         None,
+        "max_price": 1.35,
     },
     "SPX": {
         "drift":        None,
@@ -120,6 +147,7 @@ TOKEN_MAPPING = {
         "sol":          "J3NKxxXZcnNiMjKw9hYb2K4LUxgwB6t1FtPtQVsv3KFr",
         "eth":          "0xe0f63a424a4439cbe457d80e4f4b51ad25b2c56c",
         "base":         "0x50da645f148798f68ef2d7db7c1cb22a6819bb2c",
+        "max_price": 1.72,
     },
     "AIXBT": {
         "drift":        None,
@@ -128,6 +156,7 @@ TOKEN_MAPPING = {
         "sol":          "14zP2ToQ79XWvc7FQpm4bRnp9d6Mp1rFfsUW3gpLcRX",
         "eth":          None,
         "base":         "0x4f9fd6be4a90f2620860d680c0d4d5fb53d1a825",
+        "max_price": 0.9426,
     },
     "GRIFFAIN": {
         "drift":        False,
@@ -136,6 +165,7 @@ TOKEN_MAPPING = {
         "sol":          "KENJSUYLASHUMfHyy5o4Hp2FdNqZg1AsUPhfH2kYvEP",
         "eth":          None,
         "base":         None,
+        "max_price": 0.6249,
     },
     "VIRTUAL": {
         "drift":        False,
@@ -144,6 +174,7 @@ TOKEN_MAPPING = {
         "sol":          "3iQL8BFS2vE7mww4ehAqQHAsbmRNCrPxizWAT2Zfyr9y",
         "eth":          "0x44ff8620b8ca30902395a7bd3f2407e1a091bf73",
         "base":         "0x0b3e328455c4059eeb9e3f84b5543f74e24e7e1b",
+        "max_price": 5.07,
     },
     "VINE": {
         "drift":        False,
@@ -152,6 +183,7 @@ TOKEN_MAPPING = {
         "sol":          "6AJcP7wuLwmRYLBNbi825wgguaPsWzPBEHcHndpRpump",
         "eth":          None,
         "base":         None,
+        "max_price": 0.4699,
     },
     "BANANA": {
         "drift":        False,
@@ -160,6 +192,7 @@ TOKEN_MAPPING = {
         "sol":          None,
         "eth":          "0x38e68a37e401f7271568cecaac63c6b1e19130b4",
         "base":         None,
+        "max_price": 78.62,
     },
     "CHILLGUY": {
         "drift":        False,
@@ -168,5 +201,6 @@ TOKEN_MAPPING = {
         "sol":          "Df6yfrKC8kZE3KNkrHERKzAetSxbrWeniQfyJY4Jpump",
         "eth":          None,
         "base":         None,
+        "max_price": 0.6575,
     }
 }
