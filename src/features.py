@@ -4,8 +4,8 @@ import pandas as pd
 
 def compute_pairarb_zscore(
     df: pd.DataFrame,
-    dex_col: str = "avg_price",
-    perp_col: str = "mid_px",
+    col_a: str,
+    col_b: str,
     window: int = 60,
     k: float = 2.0,
     zscore_col: str = "zscore"
@@ -25,12 +25,8 @@ def compute_pairarb_zscore(
       DataFrame with the **same columns** as the input, plus a new column `zscore_col`.
       Drops any intermediate columns (`ratio`, `ratio_ma`, `ratio_std`).
     """
-    pdf = df.copy()
-
-    ratio = pdf[dex_col] / pdf[perp_col]
+    ratio = df[col_a] / df[col_b]
     mean  = ratio.rolling(window, min_periods=window).mean()
     std   = ratio.rolling(window, min_periods=window).std()
 
-    pdf[zscore_col] = (ratio - mean) / std
-
-    return pdf
+    df[zscore_col] = (ratio - mean) / std
