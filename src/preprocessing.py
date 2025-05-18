@@ -28,9 +28,9 @@ def compute_exchange_stats(src: str, lf: pl.LazyFrame) -> pl.DataFrame:
     return stats_df.filter(pl.col("count") > lower_bound)
 
 def timestamp_to_vwap(lf: pl.LazyFrame,
-    time_col: str = "block_time",
-    price_col: str = "USD_PRICE",
-    volume_col: str = "VOLUME",
+    time_col: str = "time",
+    price_col: str = "price",
+    volume_col: str = "volume",
     interval: str = "1m",
     alias: str = "vwap"
 ) -> pl.LazyFrame:
@@ -40,6 +40,11 @@ def timestamp_to_vwap(lf: pl.LazyFrame,
     """
     lf = lf.with_columns([
            ( pl.col(time_col)*1000).cast(pl.Datetime).dt.truncate(interval).alias("bucket")
+        ])
+    
+    if volume_col is None:
+        lf = lf.with_columns([
+            pl.lit(1).alias(volume_col)
         ])
     
     grouped = (lf
