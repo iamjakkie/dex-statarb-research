@@ -20,7 +20,22 @@ SCHEMAS = {
         "startingOpenInterest": pl.Float64,
         "orderbookMidPriceOpen": pl.Float64,
         "orderbookMidPriceClose": pl.Float64,
-        })
+    }),
+
+    "HYPERLIQUID": pl.Schema({
+        "time": pl.Datetime("ms", None),
+        "coin": pl.String,
+        "funding": pl.Float64,
+        "open_interest": pl.Float64,
+        "prev_day_px": pl.Float64,
+        "day_ntl_vim": pl.Float64,
+        "premium": pl.Float64,
+        "oracle_px": pl.Float64,
+        "mark_px": pl.Float64,
+        "mid_px": pl.Float64,
+        "impact_bid_px": pl.Float64,
+        "impact_ask_px": pl.Float64,
+    })
 }
 
 def load_data(src: str, token: str) -> pl.LazyFrame:
@@ -78,22 +93,27 @@ def clean_data(df: pl.DataFrame, src: str, token: str) -> pl.DataFrame:
         return price_roof(df, token, "USD_PRICE")
 
     elif src == "DYDX":
-        exprs = []
-        for col, dtype in SCHEMAS[src].items():
-            if isinstance(dtype, pl.Datetime):
-                exprs.append(
-                    pl.col(col)
-                    .str.strptime(dtype, "%Y-%m-%dT%H:%M:%S%.3fZ")
-                    .alias(col)
-                )
-            else:
-                exprs.append(
-                    pl.col(col).cast(dtype).alias(col)
-                )
-        df = df.with_columns(exprs)
+        clean_by_schema(df, src)
         return price_roof(df, token, "close")
     
+    elif src == "HYPERLIQUID":
+        clean_by_schema(df, src)
+        return price_roof(df, token, "mid_px")
     
+def clean_by_schema(df: pl.LazyFrame, src: str) -> pl.LazyFrame:
+    exprs = []
+    for col, dtype in SCHEMAS[src].items():
+        if isinstance(dtype, pl.Datetime):
+            exprs.append(
+                pl.col(col)
+                .str.strptime(dtype, "%Y-%m-%dT%H:%M:%S%.3fZ")
+                .alias(col)
+            )
+        else:
+            exprs.append(
+                pl.col(col).cast(dtype).alias(col)
+            )
+    df.with_columns(exprs)
 
 def price_roof(df: pl.LazyFrame, token: str,  price_col: str) -> pl.Expr:
     max_price = tokens.TOKEN_MAPPING[token]['max_price']
