@@ -38,10 +38,22 @@ SCHEMAS = {
     })
 }
 
-PRICE_COLS = {
-    "SOLANA": "USD_PRICE",
-    "DYDX": "close",
-    "HYPERLIQUID": "mid_px",
+COLS_MAPPING = {
+    "SOLANA": {
+        "price": "USD_PRICE",
+        "time": "block_time",
+        "volume": "VOLUME",
+    },
+    "DYDX": {
+        "price": "close",
+        "time": "startedAt",
+        "volume": "usdVolume",
+    },
+    "HYPERLIQUID": {
+        "price": "mid_px",
+        "time": "time",
+        "volume": None
+    },
 }
 
 def load_data(src: str, token: str) -> pl.LazyFrame:
@@ -94,7 +106,16 @@ def clean_data(df: pl.DataFrame, src: str, token: str) -> pl.DataFrame:
     if token not in tokens.TOKEN_MAPPING:
         raise ValueError(f"Token {token} not found in tokens.TOKEN_MAPPING")
     
-    return price_roof(clean_by_schema(df, src), token, PRICE_COLS[src])
+    return price_roof(rename_cols(clean_by_schema(df, src), src),  token)
+
+def rename_cols(df: pl.LazyFrame, src: str) -> pl.LazyFrame:
+    if src not in COLS_MAPPING:
+        return df
+    mapping = {
+        old_col: new_col
+        for new_col, old_col in COLS_MAPPING[src].items()
+    }
+    return df.rename(mapping)
 
 def clean_by_schema(df: pl.LazyFrame, src: str) -> pl.LazyFrame:
     if src not in SCHEMAS:
@@ -114,13 +135,13 @@ def clean_by_schema(df: pl.LazyFrame, src: str) -> pl.LazyFrame:
             )
     return df.with_columns(exprs)
 
-def price_roof(df: pl.LazyFrame, token: str,  price_col: str) -> pl.Expr:
+def price_roof(df: pl.LazyFrame, token: str) -> pl.Expr:
     max_price = tokens.TOKEN_MAPPING[token]['max_price']
     return (df
-                .filter(pl.col(price_col).is_finite())
+                .filter(pl.col("price").is_finite())
                 .with_columns(
-                    pl.when(pl.col(price_col) > max_price)
+                    pl.when(pl.col("price") > max_price)
                         .then(max_price)
-                        .otherwise(pl.col(price_col))
-                        .alias(price_col)
+                        .otherwise(pl.col("price"))
+                        .alias("price")
                 ))
