@@ -114,6 +114,7 @@ def rename_cols(df: pl.LazyFrame, src: str) -> pl.LazyFrame:
     mapping = {
         old_col: new_col
         for new_col, old_col in COLS_MAPPING[src].items()
+        if old_col is not None
     }
     return df.rename(mapping)
 
