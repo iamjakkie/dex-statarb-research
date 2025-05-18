@@ -5,6 +5,24 @@ import tokens
 
 import polars as pl
 
+SCHEMAS = {
+    "DYDX": pl.Schema({
+        "startedAt": pl.Datetime("ms", None),
+        "ticker": pl.String,
+        "resolution": pl.String,
+        "low": pl.Float64,
+        "high": pl.Float64,
+        "open": pl.Float64,
+        "close": pl.Float64,
+        "baseTokenVolume": pl.Float64,
+        "usdVolume": pl.Float64,
+        "trades": pl.Float64,
+        "startingOpenInterest": pl.Float64,
+        "orderbookMidPriceOpen": pl.Float64,
+        "orderbookMidPriceClose": pl.Float64,
+        })
+}
+
 def load_data(src: str, token: str) -> pl.LazyFrame:
 
     if src == "SOLANA":
@@ -23,6 +41,7 @@ def load_data(src: str, token: str) -> pl.LazyFrame:
             raise ValueError(f"Token {token} not found in tokens.TOKEN_MAPPING for BASE")
         s3_path = f"s3://iamjakkie-public/normalized/base_swaps/*/PLATFORM=*/TOKEN={token_clean}/*.parquet"
     elif src == "DYDX":
+        # Parse cols, combine with funding rates
         token_clean = tokens.TOKEN_MAPPING[token]['dydx']
         if not token_clean:
             raise ValueError(f"Token {token} not found in tokens.TOKEN_MAPPING for DYDX")
@@ -43,29 +62,46 @@ def load_data(src: str, token: str) -> pl.LazyFrame:
     print(s3_path)
 
     df = pl.scan_parquet(s3_path)
-    df = roof_price(df, src, token)
+    df = clean_data(df, src, token)
 
     return df
 
 
-def roof_price(df: pl.DataFrame, src: str, token: str) -> pl.DataFrame:
+def clean_data(df: pl.DataFrame, src: str, token: str) -> pl.DataFrame:
     """
     Cap the price of the token to its max price
     """
     if token not in tokens.TOKEN_MAPPING:
         raise ValueError(f"Token {token} not found in tokens.TOKEN_MAPPING")
-    
-    print(tokens.TOKEN_MAPPING[token])
-    max_price = tokens.TOKEN_MAPPING[token]['max_price']
-    if max_price is None:
-        raise ValueError(f"Max price for token {token} not found in tokens.TOKEN_MAPPING")
 
     if src == "SOLANA":
-        return (df
-                .filter(pl.col("USD_PRICE").is_finite())
+        return price_roof(df, token, "USD_PRICE")
+
+    elif src == "DYDX":
+        exprs = []
+        for col, dtype in SCHEMAS[src].items():
+            if isinstance(dtype, pl.Datetime):
+                exprs.append(
+                    pl.col(col)
+                    .str.strptime(dtype, "%Y-%m-%dT%H:%M:%S%.3fZ")
+                    .alias(col)
+                )
+            else:
+                exprs.append(
+                    pl.col(col).cast(dtype).alias(col)
+                )
+        df = df.with_columns(exprs)
+        return price_roof(df, token, "close")
+    
+    
+
+def price_roof(df: pl.LazyFrame, token: str,  price_col: str) -> pl.Expr:
+    max_price = tokens.TOKEN_MAPPING[token]['max_price']
+    return (df
+                .filter(pl.col(price_col).is_finite())
                 .with_columns(
-                    pl.when(pl.col("USD_PRICE") > max_price)
-                    .then(max_price)
-                    .otherwise(pl.col("USD_PRICE"))
-                    .alias("USD_PRICE")
+                    pl.when(pl.col(price_col) > max_price)
+                        .then(max_price)
+                        .otherwise(pl.col(price_col))
+                        .alias(price_col)
                 ))
