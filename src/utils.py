@@ -87,7 +87,6 @@ def load_data(src: str, token: str) -> pl.LazyFrame:
 
     return df
 
-
 def clean_data(df: pl.DataFrame, src: str, token: str) -> pl.DataFrame:
     """
     Cap the price of the token to its max price
@@ -97,17 +96,6 @@ def clean_data(df: pl.DataFrame, src: str, token: str) -> pl.DataFrame:
     
     return price_roof(clean_by_schema(df, src), token, PRICE_COLS[src])
 
-    if src == "SOLANA":
-        return price_roof(df, token, "USD_PRICE")
-
-    elif src == "DYDX":
-        clean_by_schema(df, src)
-        return price_roof(df, token, "close")
-    
-    elif src == "HYPERLIQUID":
-        clean_by_schema(df, src)
-        return price_roof(df, token, "mid_px")
-    
 def clean_by_schema(df: pl.LazyFrame, src: str) -> pl.LazyFrame:
     if src not in SCHEMAS:
         return df
