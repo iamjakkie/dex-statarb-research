@@ -6,6 +6,23 @@ import tokens
 import polars as pl
 
 SCHEMAS = {
+    "SOLANA": pl.Schema({
+        "BLOCK_DATE": pl.String,
+        "block_time": pl.Datetime("ms", None),
+        "block_slot": pl.Int64,
+        "SIGNATURE": pl.String,
+        "EXCHANGE": pl.String,
+        "PROGRAM_ID": pl.String,
+        "TOKEN": pl.String,
+        "SIDE": pl.String,
+        "TOKEN_AMOUNT": pl.Float64,
+        "QUOTE_ASSET": pl.String,
+        "QUOTE_AMOUNT": pl.Float64,
+        "DERIVED_PRICE": pl.Float64,
+        "USD_PRICE": pl.Float64,
+        "VOLUME": pl.Float64,
+    }),
+
     "DYDX": pl.Schema({
         "startedAt": pl.Datetime("ms", None),
         "ticker": pl.String,
@@ -124,12 +141,19 @@ def clean_by_schema(df: pl.LazyFrame, src: str) -> pl.LazyFrame:
     exprs = []
     for col, dtype in SCHEMAS[src].items():
         if isinstance(dtype, pl.Datetime):
-            print(f"Parsing {col} as {dtype}")
-            exprs.append(
-                pl.col(col)
-                .str.strptime(dtype, "%Y-%m-%dT%H:%M:%S%.3fZ")
-                .alias(col)
-            )
+            # check current col type
+            if df.collect_schema()[col] == pl.Int64:
+                exprs.append(
+                    pl.col(col)
+                    .cast(pl.Datetime("ms", None))
+                    .alias(col)
+                )
+            elif df.collect_schema()[col] == pl.String:
+                exprs.append(
+                    pl.col(col)
+                    .str.strptime(dtype, "%Y-%m-%dT%H:%M:%S%.3fZ")
+                    .alias(col)
+                )
         else:
             exprs.append(
                 pl.col(col).cast(dtype).alias(col)
