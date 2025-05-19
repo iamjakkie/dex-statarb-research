@@ -39,10 +39,14 @@ def timestamp_to_vwap(lf: pl.LazyFrame,
     Returns a LazyFrame with columns ['bucket', alias].
     """
     lf = lf.with_columns([
-           ( pl.col(time_col)*1000).cast(pl.Datetime).dt.truncate(interval).alias("bucket")
+           (pl.col(time_col).dt.cast_time_unit('ms')),
         ])
+        
+    lf = lf.with_columns([
+        pl.col(time_col).dt.truncate(interval).alias("bucket")
+    ])
     
-    if volume_col is None:
+    if volume_col not in lf.columns:
         lf = lf.with_columns([
             pl.lit(1).alias(volume_col)
         ])
@@ -59,7 +63,13 @@ def timestamp_to_vwap(lf: pl.LazyFrame,
         .select(["bucket", alias])
         .sort("bucket"))
     
-    return grouped
+    vwap = grouped.with_columns([
+        pl.col(alias)
+          .fill_nan(None)                     # turn NaN → null
+          .fill_null(strategy="forward")     # then ffill
+          .alias(alias)
+    ])
+    return vwap
 
 def merge_vwaps(
     vwap_map: dict[str, pl.LazyFrame]
