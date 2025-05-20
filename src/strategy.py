@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from enum import Enum
 import pandas as pd
 
+import features
+
 class TradeType(Enum):
     ENTRY = "ENTRY"
     EXIT = "EXIT"
@@ -16,9 +18,19 @@ class Trade:
     qty: float
     capital: float
 
+class StrategyType(Enum):
+    DEX_PERP = "DEX_PERP"
+    PERP_PERP = "PERP_PERP"
+
+class StrategySides(Enum):
+    LONGSHORT = "LONG_SHORT"
+    LONG = "LONG"
+    SHORT = "SHORT"
+
 # zscore-based strategy
 def backtest_pairarb(
     df: pd.DataFrame,
+    type: StrategyType,
     col_a: str,
     col_b: str,
     z_col: str,
@@ -29,10 +41,27 @@ def backtest_pairarb(
     
     capital       = initial_capital
     position      = 0
-    entry_buy_px  = entry_sell_px = 0.0
-    qty_buy       = qty_sell       = 0.0
-    holdings_a  = holdings_b     = 0.0
     trades        = []
+
+    combinations = []
+
+    if type == StrategyType.DEX_PERP:
+        # get all columns where name != DEX, create sub dfs
+        for col in df.columns:
+            if col != "DEX":
+                combinations.append((col, "DEX"))
+
+    elif type == StrategyType.PERP_PERP:
+        # permutations of all columns
+        for i in range(len(df.columns)):
+            for j in range(i + 1, len(df.columns)):
+                col_a = df.columns[i]
+                col_b = df.columns[j]
+                combinations.append((col_a, col_b))
+
+    for col_a, col_b in combinations:
+        # select all rows where col_a and col_b are not null
+        sub_df = features.compute_pairarb_zscore(df[[col_a, col_b, z_col]].dropna())
 
     for _, row in df.iterrows():
         t = row.name
@@ -114,3 +143,7 @@ def backtest_pairarb(
 
     trades_df = pd.DataFrame([trade.__dict__ for trade in trades])    
     return trades_df
+
+def pairarb_strategy(
+        
+)
