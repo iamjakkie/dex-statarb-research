@@ -30,3 +30,5 @@ def compute_pairarb_zscore(
     std   = ratio.rolling(window, min_periods=window).std()
 
     df[zscore_col] = (ratio - mean) / std
+    return df
+    
