@@ -34,10 +34,10 @@ def backtest_pairarb(
     entry_threshold: float = 2.5,
     exit_threshold: float = 1.5,
     initial_capital: float = 1000.0
-) -> pd.DataFrame:
+) -> dict[str, pd.DataFrame]:
     
     combinations = []
-    trades = []
+    trades = {}
 
     if type == StrategyType.DEX_PERP:
         # get all columns where name != DEX, create sub dfs
@@ -57,16 +57,17 @@ def backtest_pairarb(
         print(f"Backtesting {col_a} vs {col_b}...")
         # select all rows where col_a and col_b are not null
         sub_df = features.compute_pairarb_zscore(df[[col_a, col_b]].dropna(), col_a, col_b)
-        trades.append(
-            pairarb_strategy(
-                sub_df,
-                col_a,
-                col_b,
-                entry_threshold,
-                exit_threshold,
-                initial_capital
-            )
+        trades[col_a + "_" + col_b] = pairarb_strategy(
+            sub_df,
+            col_a,
+            col_b,
+            entry_threshold,
+            exit_threshold,
+            initial_capital
         )
+
+    return trades
+    
 
 def pairarb_strategy(
     df: pd.DataFrame,
