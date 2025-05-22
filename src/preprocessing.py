@@ -27,12 +27,14 @@ def compute_exchange_stats(src: str, lf: pl.LazyFrame) -> pl.DataFrame:
 
     return stats_df.filter(pl.col("count") > lower_bound)
 
-def timestamp_to_vwap(lf: pl.LazyFrame,
+def timestamp_to_vwap(
+    lf: pl.LazyFrame,
     time_col: str = "time",
     price_col: str = "price",
     volume_col: str = "volume",
     interval: str = "1m",
-    alias: str = "vwap"
+    alias: str = "vwap",
+    funding_col: str = None,
 ) -> pl.LazyFrame:
     """
     Take a LazyFrame of trades, truncate time to `interval`, then compute VWAP per bucket.
@@ -50,17 +52,28 @@ def timestamp_to_vwap(lf: pl.LazyFrame,
         lf = lf.with_columns([
             pl.lit(1).alias(volume_col)
         ])
+
+    exprs = [
+        (pl.col(price_col) * pl.col(volume_col)).sum().alias("notional"),
+        pl.col(volume_col).sum().alias("volume")
+    ]
+    select_exprs = ["bucket", alias]
+
+    if funding_col:
+        exprs.append(
+            pl.col(funding_col).sum().alias("funding")
+        )
+        select_exprs.append("funding")
     
     grouped = (lf
         .group_by("bucket")
-        .agg([
-            (pl.col(price_col) * pl.col(volume_col)).sum().alias("notional"),
-            pl.col(volume_col).sum().alias("volume")
-        ])
+        .agg(
+            exprs
+        )
         .with_columns([
             (pl.col("notional") / pl.col("volume")).alias(alias)
         ])
-        .select(["bucket", alias])
+        .select(select_exprs)
         .sort("bucket"))
     
     vwap = grouped.with_columns([
