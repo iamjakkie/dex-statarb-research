@@ -13,8 +13,10 @@ class Trade:
     timestamp: str
     type: TradeType
     side: str
-    entry_price: float
-    exit_price: float | None
+    entry_price_a: float
+    exit_price_a: float | None
+    entry_price_b: float | None
+    exit_price_b: float | None
     qty: float
     capital: float
 
@@ -108,38 +110,52 @@ def pairarb_strategy(
                 # DEX is never a B asset, so it always has to be perp
                 # and can be shorted
                 entry_price_a = px_a
-                a_qty = (capital/2) / entry_price_a
-                capital -= a_qty * entry_price_a
+                a_qty = (capital/2) / px_a
+                capital -= a_qty * px_a
+                entry_price_b = px_b
+                b_qty = capital / px_b
+                capital -= b_qty * px_b
                 position = 1 # this flag just indicates if this is LONG A SHORT B or LONG B SHORT A
                 trade = Trade(
                     timestamp=t,
                     type=TradeType.ENTRY,
-                    side="LONG A",
-                    entry_price=entry_price_a,
-                    exit_price=None,
-                    qty=a_qty,
+                    side="LONG A SHORT B",
+                    entry_price_a=px_a,
+                    exit_price_ae=None,
+                    entry_price_b=px_b,
+                    exit_price_b=None,
+                    qty_a=a_qty,
+                    qty_b=b_qty
                     capital=capital
                 )
-                trades.append(trade)
-                entry_price_b = px_b
-                b_qty = capital / entry_price_b
-                capital -= b_qty * entry_price_b
-                trade = Trade(
-                    timestamp=t,
-                    type=TradeType.ENTRY,
-                    side="SHORT B",
-                    entry_price=entry_price_b,
-                    exit_price=None,
-                    qty=b_qty,
-                    capital=capital
-                )
-                trades.append(trade)
 
             elif z < -entry_threshold:
                 # always buy/long B asset
                 # Check if A asset is a perp or DEX
                 # if DEX, then we can't short it
                 # if perp, then we can short it
+
+                if col_a != "DEX":
+                    entry_price_a = px_a
+                    a_qty = (capital/2) / entry_price_a
+                    capital -= a_qty * entry_price_a
+                    entry_price_b = px_b
+                    b_qty = capital / entry_price_b
+                    capital -= b_qty * entry_price_b
+                    position = -1 # this flag just indicates if this is LONG A SHORT B or LONG B SHORT A
+                    trade = Trade(
+                        timestamp=t,
+                        type=TradeType.ENTRY,
+                        side="LONG A SHORT B",
+                        entry_price_a=entry_price_a,
+                        exit_price_a=None,
+                        entry_price_b=entry_price_b,
+                        exit_price_b=None,
+                        qty_a=a_qty,
+                        qty_b=b_qty,
+                        capital=capital
+                    )
+
                 entry_price_b = px_b
                 b_qty = (capital/2) / entry_price_b
                 capital -= b_qty * entry_price_b
@@ -171,7 +187,7 @@ def pairarb_strategy(
 
         elif position == 1:
             # if exit signal - exit position
-            if z <= -exit_threshold:
+            if z <= -exit_threshold and px_a > entry_price_a:
                 # Exit LONG A position
                 # Exit SHORT B position
                 exit_price = px_a
@@ -202,7 +218,7 @@ def pairarb_strategy(
 
         elif position == -1:
             # if exit signal - exit position
-            if z >= exit_threshold:
+            if z >= exit_threshold and px_b > entry_price_b:
                 # Exit LONG B position
                 # Exit SHORT A position
                 exit_price = px_b
