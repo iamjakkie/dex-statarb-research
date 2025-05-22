@@ -24,19 +24,11 @@ SCHEMAS = {
     }),
 
     "DYDX": pl.Schema({
-        "startedAt": pl.Datetime("ms", None),
         "ticker": pl.String,
-        "resolution": pl.String,
-        "low": pl.Float64,
-        "high": pl.Float64,
-        "open": pl.Float64,
-        "close": pl.Float64,
-        "baseTokenVolume": pl.Float64,
-        "usdVolume": pl.Float64,
-        "trades": pl.Float64,
-        "startingOpenInterest": pl.Float64,
-        "orderbookMidPriceOpen": pl.Float64,
-        "orderbookMidPriceClose": pl.Float64,
+        "rate": pl.Float64,
+        "price": pl.Float64,
+        "effectiveAtHeight": pl.Int64,
+        "effectiveAt": pl.Datetime("ms", None),
     }),
 
     "HYPERLIQUID": pl.Schema({
@@ -62,9 +54,9 @@ COLS_MAPPING = {
         "volume": "VOLUME",
     },
     "DYDX": {
-        "price": "close",
-        "time": "startedAt",
-        "volume": "usdVolume",
+        "price": "price",
+        "time": "effectiveAt",
+        "volume": None,
     },
     "HYPERLIQUID": {
         "price": "mid_px",
@@ -95,7 +87,7 @@ def load_data(src: str, token: str) -> pl.LazyFrame:
         token_clean = tokens.TOKEN_MAPPING[token]['dydx']
         if not token_clean:
             raise ValueError(f"Token {token} not found in tokens.TOKEN_MAPPING for DYDX")
-        s3_path = f"s3://iamjakkie-public/dydx/candles/{token_clean}.parquet"
+        s3_path = f"s3://iamjakkie-public/dydx/funding_rate/{token_clean}.parquet"
     elif src == "HYPERLIQUID":
         token_clean = tokens.TOKEN_MAPPING[token]['hyperliquid']
         if not token_clean:
@@ -115,6 +107,9 @@ def load_data(src: str, token: str) -> pl.LazyFrame:
     df = clean_data(df, src, token)
 
     return df
+
+def join_funding(df: pl.LazyFrame, token: str) -> pl.LazyFrame:
+    funding = pl.scan_parquet(f"s3://iamjakkie-public/dydx/funding_rate/{token_clean}.parquet")
 
 def clean_data(df: pl.DataFrame, src: str, token: str) -> pl.DataFrame:
     """
