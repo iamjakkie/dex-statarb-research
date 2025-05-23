@@ -125,7 +125,7 @@ def pairarb_strategy(
                     entry_price_b=px_b,
                     exit_price_b=None,
                     qty_a=a_qty,
-                    qty_b=b_qty
+                    qty_b=b_qty,
                     capital=capital
                 )
 
@@ -249,3 +249,98 @@ def pairarb_strategy(
                     trades.append(trade)
 
     return pd.DataFrame([trade.__dict__ for trade in trades])
+
+def backtest_feature_pairarb(
+    df: pd.DataFrame,
+    col_a: str,
+    col_b: str,
+    initial_capital: float = 1_000.0,
+    z_entry: float        = 2.5,
+    z_exit:  float        = 1.5,
+    rsi_low: float        = 30.0,
+    bb_mult: float        = 2.0
+) -> pd.DataFrame:
+    """
+    Feature-based pair arbitrage:
+      - entry when zscore > z_entry
+        AND macd > macd_signal
+        AND rsi < rsi_low
+      - exit when zscore < z_exit
+        OR macd < macd_signal
+        OR price spread re-enters Bollinger Bands
+    """
+
+    capital     = initial_capital
+    position    = 0       # 0=no, 1=long A short B
+    a_qty = b_qty = 0.0
+    entry_px_a  = entry_px_b = 0.0
+    trades: list[Trade] = []
+
+    for t, row in df.iterrows():
+        z      = row["zscore"]
+        macd   = row["macd"]
+        sig    = row["macd_signal"]
+        rsi    = row["rsi"]
+        spread = row["spread"]
+        bb_up  = row["bb_upper"]
+        bb_lo  = row["bb_lower"]
+        px_a   = row[col_a]
+        px_b   = row[col_b]
+
+        # --- EXIT logic ---
+        if position == 1:
+            exit_cond = (
+                (z < z_exit)
+                or (macd < sig)
+                or (spread < bb_up and spread > bb_lo)
+            )
+            if exit_cond:
+                # unwind both legs
+                pnl_a = (px_a - entry_px_a) * a_qty
+                pnl_b = (entry_px_b - px_b) * b_qty
+                capital += pnl_a + pnl_b
+                trades.append(Trade(
+                    timestamp     = t,
+                    type          = TradeType.EXIT,
+                    side          = "CLOSE A/B",
+                    entry_price_a = entry_px_a,
+                    exit_price_a  = px_a,
+                    entry_price_b = entry_px_b,
+                    exit_price_b  = px_b,
+                    qty_a         = a_qty,
+                    qty_b         = b_qty,
+                    capital       = capital
+                ))
+                position = 0
+
+        # --- ENTRY logic ---
+        if position == 0:
+            enter_cond = (
+                (z > z_entry)
+                and (macd > sig)
+                and (rsi < rsi_low)
+                and (spread > bb_up)
+            )
+            if enter_cond:
+                # allocate half capital to each leg
+                half = capital / 2
+                entry_px_a = px_a
+                a_qty      = half / px_a
+                entry_px_b = px_b
+                b_qty      = half / px_b
+                capital   -= (half * 2)
+                position    = 1
+                trades.append(Trade(
+                    timestamp     = t,
+                    type          = TradeType.ENTRY,
+                    side          = "LONG A / SHORT B",
+                    entry_price_a = entry_px_a,
+                    exit_price_a  = 0.0,
+                    entry_price_b = entry_px_b,
+                    exit_price_b  = 0.0,
+                    qty_a         = a_qty,
+                    qty_b         = b_qty,
+                    capital       = capital
+                ))
+
+    return pd.DataFrame([t.__dict__ for t in trades])
