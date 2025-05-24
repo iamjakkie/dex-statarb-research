@@ -11,8 +11,8 @@ def compute_exchange_stats(src: str, lf: pl.LazyFrame) -> pl.DataFrame:
             .group_by(["EXCHANGE", "QUOTE_ASSET"])
             .agg([
                 pl.count().alias("count"),
-                pl.col("block_time").min().alias("start_date"),
-                pl.col("block_time").max().alias("end_date"),
+                pl.col("time").min().alias("start_date"),
+                pl.col("time").max().alias("end_date"),
             ])
             .sort(["EXCHANGE", "QUOTE_ASSET"])
         )
@@ -79,7 +79,8 @@ def timestamp_to_vwap(
     vwap = grouped.with_columns([
         pl.col(alias)
           .fill_nan(None)                     # turn NaN → null
-          .fill_null(strategy="forward")     # then ffill
+          .fill_null(strategy="forward")
+          .cast(pl.Float64)  # convert to float32
           .alias(alias)
     ])
     return vwap
