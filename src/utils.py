@@ -118,7 +118,7 @@ def clean_data(df: pl.DataFrame, src: str, token: str) -> pl.DataFrame:
     if token not in tokens.TOKEN_MAPPING:
         raise ValueError(f"Token {token} not found in tokens.TOKEN_MAPPING")
     
-    return price_roof(rename_cols(clean_by_schema(df, src), src),  token)
+    return price_roof(rename_cols(clean_by_schema(df, src), src), token, src)
 
 def rename_cols(df: pl.LazyFrame, src: str) -> pl.LazyFrame:
     if src not in COLS_MAPPING:
@@ -155,8 +155,17 @@ def clean_by_schema(df: pl.LazyFrame, src: str) -> pl.LazyFrame:
             )
     return df.with_columns(exprs)
 
-def price_roof(df: pl.LazyFrame, token: str) -> pl.Expr:
+def price_roof(df: pl.LazyFrame, token: str, src: str) -> pl.Expr:
     max_price = tokens.TOKEN_MAPPING[token]['max_price']
+    asset = tokens.TOKEN_MAPPING[token][src.lower()]
+    if asset.startswith("k"):
+        df = df.with_columns(
+            pl.col("price").truediv(1_000).alias("price")
+        )
+    elif asset.startswith("1M"):
+        df = df.with_columns(
+            pl.col("price").truediv(1_000_000).alias("price")
+        )
     return (df
                 .filter(pl.col("price").is_finite())
                 .with_columns(
