@@ -6,7 +6,7 @@ import statsmodels.api as sm
 from statsmodels.regression.rolling import RollingOLS
 
 def compute_pairarb_features(
-    df: pd.DataFrame,
+    merged_df: pd.DataFrame,
     col_a: str,
     col_b: str,
     funding_col: str = None,
@@ -29,6 +29,7 @@ def compute_pairarb_features(
       DataFrame with the **same columns** as the input, plus a new column `zscore_col`.
       Drops any intermediate columns (`ratio`, `ratio_ma`, `ratio_std`).
     """
+    df = merged_df.copy()
     # 1) z‐score of price ratio + rolling std
     ratio = df[col_a] / df[col_b]
     mu    = ratio.rolling(window, min_periods=window).mean()
