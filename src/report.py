@@ -3,10 +3,11 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 def generate_backtest_report_html(
+    combination: tuple[str, str],
     df: pd.DataFrame,
     metrics: dict,
     benchmark_series: pd.Series = None,
-    output_path: str = "backtest_report.html"
+    output_path: str = "backtest_report.html",
 ):
     """
     Build a 1–2 page HTML report with:
@@ -21,6 +22,8 @@ def generate_backtest_report_html(
       benchmark_series: optional pd.Series of cumulative benchmark equity (same index)
       output_path     : where to write the HTML file
     """
+    ex_a, ex_b = combination
+    print(f"▶ Generating report for {ex_a} vs {ex_b}")
     imgs = {}
 
     # 1) Equity Curve
