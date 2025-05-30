@@ -58,7 +58,7 @@ def compute_backtest_metrics(
     sharpe  = bar_ret.mean() / bar_ret.std() * np.sqrt(252*24*60)
 
     # 4) summary stats
-    ending_cap   = equity.iloc[-1]
+    ending_cap   = equity[-1]
     total_return = (ending_cap - initial_capital) / initial_capital * 100.0
     win_rate     = (trades_df['pnl'] > 0).mean() * 100.0
 
