@@ -103,7 +103,6 @@ def get_benchmark(
     btc_benchmark['benchmark_value'] = btc_benchmark['benchmark_value'] - initial_capital
     btc_benchmark.set_index('bucket', inplace=True)
 
-    print(btc_benchmark["benchmark_value"])
     return btc_benchmark["benchmark_value"]
 
 def benchmark(trades: list):
