@@ -36,13 +36,11 @@ def run_backtest(
             funding_col=f"{combination[1]}_funding" if f"{combination[1]}_funding" in merged_df.columns else None
         )
 
-
         strategy_df = strategy(
             features_df,
             combination[0],
             combination[1],
         )
-
 
         if strategy_df.empty:
             continue
@@ -103,7 +101,7 @@ def get_benchmark(
     first_price = btc_benchmark['avg_price'].iloc[0]
     btc_benchmark['btc_holdings'] = initial_capital / first_price
     btc_benchmark['benchmark_value'] = btc_benchmark['btc_holdings'] * btc_benchmark['avg_price']
-    btc_benchmark['benchmark_value'] = btc_benchmark['benchmark_value'] - initial_capital
+    btc_benchmark['benchmark_value'] = btc_benchmark['benchmark_value']
     btc_benchmark.set_index('bucket', inplace=True)
 
     return btc_benchmark["benchmark_value"]
