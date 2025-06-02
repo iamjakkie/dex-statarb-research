@@ -95,10 +95,16 @@ def merge_vwaps(
     merged = None
     for name, lf in vwap_map.items():
         if name != "DEX":
-            this = (lf
-                .rename({lf.columns[1]: name, lf.columns[2]: f"{name}_funding"})
-                .select(["bucket", name, f"{name}_funding"])
-            )
+            if "funding" in lf.columns:
+                this = (lf
+                    .rename({lf.columns[1]: name, lf.columns[2]: f"{name}_funding"})
+                    .select(["bucket", name, f"{name}_funding"])
+                )
+            else:
+                this = (lf
+                    .rename({lf.columns[1]: name})
+                    .select(["bucket", name])
+                )
         else:
             this = (lf
                 .rename({lf.columns[1]: name})
