@@ -120,4 +120,19 @@ def merge_vwaps(
                       ])
                       .drop("bucket_right")
                       )
+            
+        cols_to_ffill = [c for c in merged.columns if c != "bucket"]
+
+        merged = (
+            merged
+            .filter(pl.col("bucket")<pl.datetime(2025,2,28))
+            .sort("bucket")
+            .with_columns([
+                pl.col(c).fill_null(strategy="forward").alias(c)
+                for c in cols_to_ffill
+            ])
+        )
+
+        # hard limit is 2025-02-28
+        # merged = merged.filter(pl.col("bucket")<'2025-03-01')
     return merged.sort("bucket")
