@@ -106,7 +106,7 @@ def pairarb_zscore(
     col_b: str,
     entry_threshold: float = 2.5,
     exit_threshold: float = 1.5,
-    initial_capital: float = 1000.0
+    notional: float = 1000.0
 ) -> pd.DataFrame:
     
     df = input_df.copy()
@@ -125,42 +125,44 @@ def pairarb_zscore(
     df["enter_short"] = df["score_short"] >= ENTRY_SCORE
     df["exit_short"]  = df["score_short"] <= EXIT_SCORE
 
-    df['position']  = 0
-    pos            = 0
-
+    # 2) Build the integer “position” series: 0 or -1 only (we only allow one leg: long DEX/short PERP)
+    df["position"] = 0
+    pos = 0
     for t, row in df.iterrows():
-        
-        # 1) exit logic
-        if pos == +1 and row['exit_long']:
+        if pos == -1 and row["exit_short"]:
             pos = 0
-        elif pos == -1 and row['exit_short']:
-            pos = 0
+        elif pos == 0 and row["enter_short"]:
+            pos = -1
+        df.at[t, "position"] = pos
 
-        # 2) entry logic (only when flat)
-        elif pos == 0:
-            if row['enter_short']:
-                pos           = -1
+    # 3) Compute raw bar‐returns on each leg
+    r_dex  = df[col_a].pct_change().fillna(0.0)
+    r_perp = df[col_b].pct_change().fillna(0.0)
 
-        df.at[t, 'position'] = pos
+    # 4) Shift position by 1 bar
+    pos_lag = df["position"].shift(1).fillna(0).astype(int)
 
-    # ── 4) bar returns
-    r_dex  = df[col_a].pct_change().fillna(0)
-    r_perp = df[col_b].pct_change().fillna(0)
-    pos_lag = df['position'].shift(1).fillna(0).astype(int)
-
-    strat_ret = []
+    # 5) Compute “PnL in dollars” on a fixed notional
+    pnl_list = []
+    strat_ret_list = []
     for p, rd, rp in zip(pos_lag, r_dex, r_perp):
         if p == -1:
-            # realistic: long DEX + short PERP
-            ret = 0.5 * (rd + (-rp))
+            pnl_dex  = (notional / 2.0) * rd
+            pnl_perp = (notional / 2.0) * (-rp)
+            pnl = pnl_dex + pnl_perp
         else:
-            ret = 0.0
-        strat_ret.append(ret)
-    df['strat_ret'] = strat_ret
+            pnl = 0.0
+        pnl_list.append(pnl)
+        strat_ret_list.append(pnl / notional)  # bar‐return for this bar
 
-    # ── 5) equity curves
-    df['cum_strat'] = (1 + df['strat_ret']).cumprod() * 1000
-    df['cum_perp']  = (1 + r_perp).cumprod()    * 1000
+    df["pnl"]       = pnl_list
+    df["strat_ret"] = strat_ret_list
+
+    # 6) Equity curve = starting capital + cumulative sum of pnl
+    df["cum_strat"] = notional + df["pnl"].cumsum()
+
+    # 7) Hold‐PERP equity line on fixed $notional
+    df["cum_perp"]  = notional * (1.0 + r_perp).cumprod()
 
     return df
 
