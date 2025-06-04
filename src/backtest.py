@@ -14,7 +14,6 @@ def run_backtest(
     initial_capital: float = 1000.0
 ):
     cols = sorted([col for col in merged_df.columns if col in ["DEX", "DYDX", "HYPERLIQUID"]])
-    print(cols)
     combinations = []
     if "DEX" in cols:
         for perp in cols[1:]:
@@ -54,6 +53,7 @@ def run_backtest(
         output_path = f"{token}_{combination[0]}_{combination[1]}_backtest_report.html"
 
         report.generate_backtest_report_html(
+            token,
             combination,
             strategy_df,
             metrics_out,
