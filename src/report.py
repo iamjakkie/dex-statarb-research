@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 
 def generate_backtest_report_html(
+    token: str,
     combination: tuple[str, str],
     df: pd.DataFrame,
     metrics: dict,
@@ -141,10 +142,9 @@ def generate_backtest_report_html(
 
     fig, ax = plt.subplots(figsize=(10,4))
     ax.plot(df.index, rolling_vol_strat, label="Rolling Vol (Strategy)", color="tab:blue")
-    ax.plot(df.index, rolling_vol_perp, label="Rolling Vol (Hold Perp)", color="tab:orange", alpha=0.7)
     ax.set_ylabel("Annualized Volatility")
     ax.set_xlabel("Time")
-    ax.set_title("60‐minute Rolling Volatility: Strat vs. Hold Perp")
+    ax.set_title("60‐minute Rolling Volatility: Strat")
     ax.legend(loc="upper left")
 
     buf = io.BytesIO()
@@ -166,7 +166,7 @@ def generate_backtest_report_html(
   </style>
 </head>
 <body>
-  <h1>Backtest Report</h1>
+  <h1>Backtest Report for {token}</h1>
 
   <div class="section">
     <h2>Summary Metrics</h2>
