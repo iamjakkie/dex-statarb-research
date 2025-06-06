@@ -2,6 +2,7 @@
 # normalize prices
 
 import numpy as np
+import pandas as pd
 import polars as pl
 
 def compute_exchange_stats(src: str, lf: pl.LazyFrame) -> pl.DataFrame:
@@ -16,6 +17,8 @@ def compute_exchange_stats(src: str, lf: pl.LazyFrame) -> pl.DataFrame:
             ])
             .sort(["EXCHANGE", "QUOTE_ASSET"])
         )
+    elif src == "ETHEREUM": 
+        ...
     
     stats_df = stats_lf.collect()
     counts = stats_df["count"].to_numpy()
@@ -26,6 +29,11 @@ def compute_exchange_stats(src: str, lf: pl.LazyFrame) -> pl.DataFrame:
         lower_bound = q1
 
     return stats_df.filter(pl.col("count") > lower_bound)
+
+def select_dex(src: str, stats: pl.DataFrame, df: pl.LazyFrame) -> pl.LazyFrame:
+    # initial - naive
+    exchange = stats.sort("count", descending=True)["EXCHANGE"].first()
+    return df.filter(pl.col("EXCHANGE")==exchange)
 
 def timestamp_to_vwap(
     lf: pl.LazyFrame,
@@ -87,7 +95,7 @@ def timestamp_to_vwap(
 
 def merge_vwaps(
     vwap_map: dict[str, pl.LazyFrame]
-) -> pl.LazyFrame:
+) -> pd.DataFrame:
     """
     Given a dict of {exchange_name: LazyFrame(bucket, vwap)},
     outer-join them all on 'bucket' into one LazyFrame, with one column per exchange.
@@ -135,4 +143,4 @@ def merge_vwaps(
 
         # hard limit is 2025-02-28
         # merged = merged.filter(pl.col("bucket")<'2025-03-01')
-    return merged.sort("bucket")
+    return merged.sort("bucket").collect().to_pandas()
