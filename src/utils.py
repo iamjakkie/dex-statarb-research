@@ -23,6 +23,8 @@ SCHEMAS = {
         "VOLUME": pl.Float64,
     }),
 
+
+
     "DYDX": pl.Schema({
         "startedAt": pl.Datetime("ms", None),
         "ticker": pl.String,
@@ -84,7 +86,7 @@ def load_data(src: str, token: str) -> pl.LazyFrame:
         token_clean = tokens.TOKEN_MAPPING[token]['eth']
         if not token_clean:
             raise ValueError(f"Token {token} not found in tokens.TOKEN_MAPPING for ETHEREUM")
-        s3_path = f"s3://iamjakkie-public/normalized/ethereum_swaps/*/PLATFORM=*/TOKEN={token_clean}/*.parquet"
+        s3_path = f"s3://iamjakkie-public/normalized/ethereum_swaps/*/PLATFORM=*/TOKEN={token_clean}/QUOTE_ASSET=*/*.parquet"
     elif src == "BASE":
         token_clean = tokens.TOKEN_MAPPING[token]['base']
         if not token_clean:
@@ -182,3 +184,6 @@ def price_roof(df: pl.LazyFrame, token: str, src: str) -> pl.Expr:
                         .otherwise(pl.col("price"))
                         .alias("price")
                 ))
+
+def pick_dex(src: str, df: pl.LazyFrame):
+    stats = preprocessing.compute_exchange_stats()
