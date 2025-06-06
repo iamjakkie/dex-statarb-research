@@ -144,16 +144,17 @@ def clean_by_schema(df: pl.LazyFrame, src: str) -> pl.LazyFrame:
     if src not in SCHEMAS:
         return df
     exprs = []
+    schema = df.collect_schema()
     for col, dtype in SCHEMAS[src].items():
         if isinstance(dtype, pl.Datetime):
             # check current col type
-            if df.collect_schema()[col] == pl.Int64:
+            if schema[col] == pl.Int64:
                 exprs.append(
                     pl.col(col)
                     .cast(pl.Datetime("ms", None))
                     .alias(col)
                 )
-            elif df.collect_schema()[col] == pl.String:
+            elif schema[col] == pl.String:
                 exprs.append(
                     pl.col(col)
                     .str.strptime(dtype, "%Y-%m-%dT%H:%M:%S%.3fZ")
