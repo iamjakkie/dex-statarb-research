@@ -184,6 +184,3 @@ def price_roof(df: pl.LazyFrame, token: str, src: str) -> pl.Expr:
                         .otherwise(pl.col("price"))
                         .alias("price")
                 ))
-
-def pick_dex(src: str, df: pl.LazyFrame):
-    stats = preprocessing.compute_exchange_stats()
