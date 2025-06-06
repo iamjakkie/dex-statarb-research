@@ -1,18 +1,5 @@
 # TOKEN_MAPPING for available perp platforms and on‐chain DEX contracts
 
-from dataclasses import dataclass
-
-@dataclass
-class Token:
-    drift: str
-    dydx: str
-    hyperliquid: str
-    sol: str
-    eth: str
-    base: str
-    max_price: float = None
-
-
 TOKEN_MAPPING = {
     "FARTCOIN": {
         "drift":        None,
