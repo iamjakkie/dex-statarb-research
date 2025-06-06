@@ -64,7 +64,7 @@ class Backtest:
             metrics_out = metrics.compute_backtest_metrics(strategy_df)
 
             output_path = (
-                f"{token}_{combination[0]}_{combination[1]}_backtest_report.html"
+                f"reports/{token}_{combination[0]}_{combination[1]}_backtest_report.html"
             )
 
             report.generate_backtest_report_html(
