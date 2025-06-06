@@ -1,6 +1,12 @@
-from tokens import TOKEN_MAPPING
+
+from src import strategy
+from src.backtest import Backtest
+
 
 def main():
-    for token, data in TOKEN_MAPPING.items():
-        print(f"Token: {token}")
-        
+    strat = strategy.pairarb_zscore
+    bt = Backtest(strat)
+    bt.run()
+
+if __name__ == "__main__":
+    main()
