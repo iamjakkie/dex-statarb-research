@@ -1,9 +1,11 @@
 # run backtest that outputs trades_df
 # size capital
+import datetime
 import features
 import metrics
 import report
-from src import preprocessing, utils
+import preprocessing
+import utils
 import tokens
 
 import pandas as pd
@@ -118,19 +120,42 @@ class Backtest:
         return btc_benchmark["benchmark_value"]
 
     def run(self):
+        now = datetime.datetime.now()
+        print("Running backtest for all tokens... ", now.strftime("%Y-%m-%d %H:%M:%S"))
         for token, data in self.tokens.items():
+            print(f"Processing token: {token}")
             if not data["sol"]:
                 continue
 
+            print(f"Loading data for {token}...")
             dex = utils.load_data("SOLANA", token)
+            print("Loaded SOLANA data.")
             dydx = utils.load_data("DYDX", token)
+            print("Loaded DYDX data.")
             hl = utils.load_data("HYPERLIQUID", token)
+            print("Loaded HYPERLIQUID data.")
+
+            elapsed = datetime.datetime.now() - now
+            print(f"Data loading took {elapsed.total_seconds()} seconds.")
+            now = datetime.datetime.now()
 
             dex_filtered = preprocessing.select_dex("SOLANA", dex)
+            print("Filtered DEX data.")
+            elapsed = datetime.datetime.now() - now
+            print(f"Filtering DEX data took {elapsed.total_seconds()} seconds.")
+            now = datetime.datetime.now()
+
 
             dex_vwap = preprocessing.timestamp_to_vwap(dex_filtered)
+            print("Computed DEX VWAP.")
             dydx_vwap = preprocessing.timestamp_to_vwap(dydx)
+            print("Computed DYDX VWAP.")
             hl_vwap = preprocessing.timestamp_to_vwap(hl)
+            print("Computed HYPERLIQUID VWAP.")
+            elapsed = datetime.datetime.now() - now
+            print(f"VWAP computation took {elapsed.total_seconds()} seconds.")
+            now = datetime.datetime.now()
+
 
             dfs = {
                 "DYDX": dydx_vwap,
@@ -139,10 +164,17 @@ class Backtest:
             }
 
             merged = preprocessing.merge_vwaps(dfs)
+            print("Merged VWAPs.")
+            elapsed = datetime.datetime.now() - now
+            print(f"Merging VWAPs took {elapsed.total_seconds()} seconds.")
+            now = datetime.datetime.now()
 
             self._run_backtest(
                 token,
                 merged
             )
+
+            elapsed = datetime.datetime.now() - now
+            print(f"Backtest for {token} took {elapsed.total_seconds()} seconds.")
 
 
