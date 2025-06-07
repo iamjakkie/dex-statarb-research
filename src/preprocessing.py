@@ -30,8 +30,9 @@ def compute_exchange_stats(src: str, lf: pl.LazyFrame) -> pl.DataFrame:
 
     return stats_df.filter(pl.col("count") > lower_bound)
 
-def select_dex(src: str, stats: pl.DataFrame, df: pl.LazyFrame) -> pl.LazyFrame:
+def select_dex(src: str, df: pl.LazyFrame) -> pl.LazyFrame:
     # initial - naive
+    stats = compute_exchange_stats(src, df)
     exchange = stats.sort("count", descending=True)["EXCHANGE"].first()
     return df.filter(pl.col("EXCHANGE")==exchange)
 
