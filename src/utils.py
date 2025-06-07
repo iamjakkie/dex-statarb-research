@@ -78,7 +78,7 @@ COLS_MAPPING = {
 def load_data(src: str, token: str) -> pl.LazyFrame:
 
     if src == "SOLANA":
-        token_clean = tokens.TOKEN_MAPPING[token]['sol']
+        token_clean = tokens.TOKEN_MAPPING[token]['solana']
         if not token_clean:
             raise ValueError(f"Token {token} not found in tokens.TOKEN_MAPPING for SOLANA")
         s3_path = f"s3://iamjakkie-public/normalized/solana_swaps/*/PROGRAM_ID=*/TOKEN={token_clean}/QUOTE_ASSET=*/*.parquet"
