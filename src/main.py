@@ -1,6 +1,6 @@
 
-from src import strategy
-from src.backtest import Backtest
+import strategy
+from backtest import Backtest
 
 
 def main():
