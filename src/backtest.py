@@ -124,7 +124,7 @@ class Backtest:
         print("Running backtest for all tokens... ", now.strftime("%Y-%m-%d %H:%M:%S"))
         for token, data in self.tokens.items():
             print(f"Processing token: {token}")
-            if not data["sol"]:
+            if not data["solana"]:
                 continue
 
             print(f"Loading data for {token}...")
